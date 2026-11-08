@@ -1,64 +1,285 @@
-import { DurableObject } from "cloudflare:workers";
+// import { GameRoom, type Env } from "./game-room";
+// import { PAGE } from "./page";
 
-/**
- * Welcome to Cloudflare Workers! This is your first Durable Objects application.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your Durable Object in action
- * - Run `npm run deploy` to publish your application
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/durable-objects
- */
+// export { GameRoom };
 
-/** A Durable Object's behavior is defined in an exported Javascript class */
-export class MyDurableObject extends DurableObject<Env> {
-	/**
-	 * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
-	 * 	`DurableObjectStub::get` for a given identifier (no-op constructors can be omitted)
-	 *
-	 * @param ctx - The interface for interacting with Durable Object state
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 */
-	constructor(ctx: DurableObjectState, env: Env) {
-		super(ctx, env);
-	}
+// const ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-	/**
-	 * The Durable Object exposes an RPC method sayHello which will be invoked when a Durable
-	 *  Object instance receives a request from a Worker via the same method invocation on the stub
-	 *
-	 * @param name - The name provided to a Durable Object instance from a Worker
-	 * @returns The greeting to be sent back to the Worker
-	 */
-	async sayHello(name: string): Promise<string> {
-		return `Hello, ${name}!`;
-	}
+// function json(data: unknown, status = 200): Response {
+//   return Response.json(data, { status });
+// }
+
+// function html(): Response {
+//   return new Response(PAGE, {
+//     headers: {
+//       "Content-Type": "text/html; charset=UTF-8",
+//       "Cache-Control": "no-store",
+//       "X-Content-Type-Options": "nosniff",
+//       "Referrer-Policy": "strict-origin-when-cross-origin"
+//     }
+//   });
+// }
+
+// function generateRoomCode(): string {
+//   const bytes = new Uint8Array(4);
+//   crypto.getRandomValues(bytes);
+
+//   return Array.from(bytes)
+//     .map((byte) => ROOM_ALPHABET[byte % ROOM_ALPHABET.length])
+//     .join("");
+// }
+
+// async function createRoom(
+//   request: Request,
+//   env: Env
+// ): Promise<Response> {
+//   let body: { nickname?: string };
+
+//   try {
+//     body = await request.json();
+//   } catch {
+//     return json({ error: "Invalid request body." }, 400);
+//   }
+
+//   if (typeof body.nickname !== "string") {
+//     return json({ error: "Please enter a nickname." }, 400);
+//   }
+
+//   for (let attempt = 0; attempt < 8; attempt++) {
+//     const code = generateRoomCode();
+//     const id = env.GAME_ROOM.idFromName(code);
+//     const stub = env.GAME_ROOM.get(id);
+
+//     const response = await stub.fetch(
+//       new Request("https://room.internal/create", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json"
+//         },
+//         body: JSON.stringify({
+//           code,
+//           nickname: body.nickname
+//         })
+//       })
+//     );
+
+//     if (response.status === 409) continue;
+
+//     return response;
+//   }
+
+//   return json(
+//     { error: "Could not create a room. Please try again." },
+//     503
+//   );
+// }
+
+// async function joinRoom(
+//   request: Request,
+//   code: string,
+//   env: Env
+// ): Promise<Response> {
+//   const id = env.GAME_ROOM.idFromName(code);
+//   const stub = env.GAME_ROOM.get(id);
+
+//   return stub.fetch(
+//     new Request("https://room.internal/join", request)
+//   );
+// }
+
+// async function connectRoom(
+//   request: Request,
+//   code: string,
+//   env: Env
+// ): Promise<Response> {
+//   const id = env.GAME_ROOM.idFromName(code);
+//   const stub = env.GAME_ROOM.get(id);
+
+//   const incomingUrl = new URL(request.url);
+//   const internalUrl = new URL("https://room.internal/ws");
+//   internalUrl.search = incomingUrl.search;
+
+//   return stub.fetch(new Request(internalUrl, request));
+// }
+
+// export default {
+//   async fetch(
+//     request: Request,
+//     env: Env
+//   ): Promise<Response> {
+//     const url = new URL(request.url);
+//     const path = url.pathname;
+
+//     if (request.method === "GET" && path === "/health") {
+//       return json({
+//         status: "ok",
+//         application: "impostor-sketch",
+//         stage: 1
+//       });
+//     }
+
+//     if (request.method === "POST" && path === "/api/rooms") {
+//       return createRoom(request, env);
+//     }
+
+//     const joinMatch = path.match(
+//       /^\/api\/rooms\/([A-HJ-NP-Z2-9]{4})\/join$/i
+//     );
+
+//     if (request.method === "POST" && joinMatch) {
+//       return joinRoom(request, joinMatch[1].toUpperCase(), env);
+//     }
+
+//     const socketMatch = path.match(
+//       /^\/ws\/([A-HJ-NP-Z2-9]{4})$/i
+//     );
+
+//     if (
+//       request.method === "GET" &&
+//       socketMatch &&
+//       request.headers.get("Upgrade")?.toLowerCase() === "websocket"
+//     ) {
+//       return connectRoom(request, socketMatch[1].toUpperCase(), env);
+//     }
+
+//     if (
+//       request.method === "GET" &&
+//       (path === "/" || /^\/r\/[A-HJ-NP-Z2-9]{4}$/i.test(path))
+//     ) {
+//       return html();
+//     }
+
+//     return json({ error: "Page not found." }, 404);
+//   }
+// };
+
+import { GameRoom, type Env } from "./game-room";
+import { PAGE } from "./page";
+
+export { GameRoom };
+
+const ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function json(data: unknown, status = 200): Response {
+  return Response.json(data, { status });
+}
+
+function html(): Response {
+  return new Response(PAGE, {
+    headers: {
+      "Content-Type": "text/html; charset=UTF-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    }
+  });
+}
+
+function generateRoomCode(): string {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+
+  return Array.from(bytes)
+    .map((byte) => ROOM_ALPHABET[byte % ROOM_ALPHABET.length])
+    .join("");
+}
+
+async function createRoom(request: Request, env: Env): Promise<Response> {
+  let body: { nickname?: string };
+
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: "Invalid request body." }, 400);
+  }
+
+  if (typeof body.nickname !== "string") {
+    return json({ error: "Please enter a nickname." }, 400);
+  }
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const code = generateRoomCode();
+    const id = env.GAME_ROOM.idFromName(code);
+    const stub = env.GAME_ROOM.get(id);
+
+    const response = await stub.fetch(
+      new Request("https://room.internal/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, nickname: body.nickname })
+      })
+    );
+
+    if (response.status === 409) continue;
+
+    return response;
+  }
+
+  return json({ error: "Could not create a room. Please try again." }, 503);
+}
+
+async function joinRoom(
+  request: Request,
+  code: string,
+  env: Env
+): Promise<Response> {
+  const id = env.GAME_ROOM.idFromName(code);
+  const stub = env.GAME_ROOM.get(id);
+
+  return stub.fetch(new Request("https://room.internal/join", request));
+}
+
+async function connectRoom(
+  request: Request,
+  code: string,
+  env: Env
+): Promise<Response> {
+  const id = env.GAME_ROOM.idFromName(code);
+  const stub = env.GAME_ROOM.get(id);
+
+  const incomingUrl = new URL(request.url);
+  const internalUrl = new URL("https://room.internal/ws");
+  internalUrl.search = incomingUrl.search;
+
+  return stub.fetch(new Request(internalUrl, request));
 }
 
 export default {
-	/**
-	 * This is the standard fetch handler for a Cloudflare Worker
-	 *
-	 * @param request - The request submitted to the Worker from the client
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 * @param ctx - The execution context of the Worker
-	 * @returns The response to be sent back to the client
-	 */
-	async fetch(request, env, ctx): Promise<Response> {
-		// Create a stub to open a communication channel with the Durable Object
-		// instance named "foo".
-		//
-		// Requests from all Workers to the Durable Object instance named "foo"
-		// will go to a single remote Durable Object instance.
-		const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-		// Call the `sayHello()` RPC method on the stub to invoke the method on
-		// the remote Durable Object instance.
-		const greeting = await stub.sayHello("world");
+    if (request.method === "GET" && path === "/health") {
+      return json({ status: "ok", application: "impostor-sketch", stage: 1 });
+    }
 
-		return new Response(greeting);
-	},
-} satisfies ExportedHandler<Env>;
+    if (request.method === "POST" && path === "/api/rooms") {
+      return createRoom(request, env);
+    }
+
+    const joinMatch = path.match(/^\/api\/rooms\/([A-HJ-NP-Z2-9]{4})\/join$/i);
+
+    if (request.method === "POST" && joinMatch) {
+      return joinRoom(request, joinMatch[1].toUpperCase(), env);
+    }
+
+    const socketMatch = path.match(/^\/ws\/([A-HJ-NP-Z2-9]{4})$/i);
+
+    if (
+      request.method === "GET" &&
+      socketMatch &&
+      request.headers.get("Upgrade")?.toLowerCase() === "websocket"
+    ) {
+      return connectRoom(request, socketMatch[1].toUpperCase(), env);
+    }
+
+    if (
+      request.method === "GET" &&
+      (path === "/" || /^\/r\/[A-HJ-NP-Z2-9]{4}$/i.test(path))
+    ) {
+      return html();
+    }
+
+    return json({ error: "Page not found." }, 404);
+  }
+};
